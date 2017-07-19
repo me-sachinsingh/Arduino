@@ -1,1 +1,3 @@
+Adafruit GFX libs - https://github.com/adafruit/Adafruit-GFX-Library
+UTFTGLUE - https://github.com/prenticedavid/MCUFRIEND_kbv
 
