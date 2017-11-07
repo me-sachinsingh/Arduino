@@ -1,0 +1,200 @@
+#include<SoftwareSerial.h>
+#include<IRremote.h>
+
+SoftwareSerial SIM(11,12);  //RX,TX
+
+int msglth;
+int IRpin = 9;
+IRrecv irrecv(IRpin);
+decode_results results;
+
+void setup() {
+   Serial.begin(9600);        //BEGIN SERIAL COMMUNICATION             
+   SIM.begin(9600);           //BEGIN COMMUNICATION TO GSM MODULE
+   irrecv.enableIRIn();
+   delay(100);
+   getMenu();                    
+}
+
+long choice = 0;
+
+void loop() {
+  if(SIM.available()>0)
+  Serial.write(SIM.read());
+  if(irrecv.decode(&results))
+  {
+    irrecv.resume();
+    choice = results.value;
+    delay(200);
+  }  
+  switch(choice) {
+    
+    case 3119867746:                                 //Press 0
+          break;
+     case 3778927144:                                //Press 1
+          getMenu();
+          break;
+     case 2908251746:                                //Press 2
+          MakeCall();
+          break;
+     case 657459652:                                 //Press 3
+          SendMessage();
+          break;
+     case 3:
+          break;           
+     case 2479124606:
+          AnswerCall();
+          break; 
+     case 3398220998:
+          HangCall();
+          break; 
+     }
+  choice = 0;
+}
+
+
+void getMenu()  {                                        //OPTIONS TO SELECT
+     Serial.println("Menu : Press");
+     Serial.println("1 - Menu Options");
+     Serial.println("2 - Make Call");
+     Serial.println("3 - Send SMS");
+     Serial.println("Red Button - End Call");
+     Serial.println("Green Button - Answer Call\n\n");
+}
+
+void MakeCall()  {
+     String number="";
+     char num='h';
+     Serial.println("Enter number :");
+     delay(500);
+     while(number.length() < 10) 
+     {
+       num=codes();
+       delay(200);
+       if(num != 'h')
+       {
+         number+=num;
+         if(num == 'r')
+            number="";
+         num='h'; 
+       }
+       if(num == 'r')
+       number="";
+      }
+      Serial.println();
+     Serial.print("Calling - ");
+     Serial.println(number);   
+     SIM.print("ATD");
+     SIM.print(number);
+     SIM.print(";\r\n");
+     number = "";
+}  
+ 
+void AnswerCall() {
+     SIM.print("ATA\r\n");
+     Serial.println("Hello");
+}  
+
+void SendMessage() {
+  char message[360];
+  int receiver[10],i=0,j=0;
+  Serial.println("Enter the receipents number - ");
+  while(!Serial.available()) {}
+  while(Serial.available()>0)  {
+    receiver[i++]= Serial.read(); 
+    delay(10);
+    }
+  i=0;  
+  Serial.println("Enter the message to send:");
+  while(!Serial.available()) {}
+  while(Serial.available()>0)  {
+    message[j++]= Serial.read();
+    delay(10);
+   }
+   msglth=j;
+   Serial.println("AT+CMGF=1");
+   delay(100);
+   Serial.print("AT+CMGS=\"+91");
+   while(j<10)  {
+    Serial.print(receiver[i++]-48);
+   }
+   Serial.println("\"\r");
+   delay(100);
+   MGsend(message);
+   Serial.println(char(26));
+   Serial.println("Message Sent");
+  }
+
+void MGsend(char message[])  {
+  int k=0;
+  while(k<msglth)  {
+    Serial.print(message[k++]);
+    }
+  }
+  
+void HangCall()  {
+     SIM.print("ATH\r\n");
+     Serial.print("");
+     Serial.println("Call Ended");
+}  
+
+char codes() {
+  long code;
+  if (irrecv.decode(&results)) 
+    {
+      code = results.value;
+      irrecv.resume();   // Receive the next value
+    }
+  switch(code)
+  {
+    case 3119867746:
+          Serial.print("0");                          //Press 0
+          return '0';                       
+          break;
+    case 3778927144:                                 //Press 1
+          Serial.print("1");
+          return '1';
+          break;
+     case 2908251746:                                //Press 2
+          Serial.print("2");
+          return '2';
+          break;
+     case 657459652:                                //Press 3
+          Serial.print("3");
+          return '3';
+          break;
+     case 4120482440:                                //Press 4
+          Serial.print("4");
+          return '4';
+          break;
+     case 1931099650:                                //Press 5
+          Serial.print("5");
+          return '5';
+          break;
+     case 742730860:                                //Press 6
+          Serial.print("6");
+          return '6';
+          break;     
+     case 1167253836:                                //Press 7
+          Serial.print("7");
+          return '7';
+          break;
+     case 1747313982:                                //Press 8
+          Serial.print("8");
+          return '8';
+          break;
+     case 2340753640:                                //Press 9
+          Serial.print("9");
+          return '9';
+          break; 
+     case 1972149634:                                //Press Pre-CH
+          Serial.println("\nRedial Number:");
+          return 'r';
+          break;     
+     default:  
+          return 'h';      
+          break;
+    }
+  code = 0;
+   
+  }
