@@ -1,0 +1,50 @@
+#include<SoftwareSerial.h>
+SoftwareSerial SIM(11,12);  //TX,RX
+
+int msglth;
+
+void setup() {
+  String message;
+  Serial.begin(9600);
+  SIM.begin(9600);
+  delay(100); 
+  Serial.println("Connection completed");
+}
+
+void loop() {
+  char message[360];
+  int number[10],i=0,j=0;
+  Serial.println("Enter receipent number");
+  while(!Serial.available())  {}
+  while(i<10)  {
+    number[i++]=Serial.read();
+    delay(10);
+   }
+  i=0; 
+  Serial.println("Enter message");
+  while(!Serial.available())  {}
+  while(Serial.available()>0) 
+  {
+    message[i++]=Serial.read();
+    delay(10);
+    }
+  msglth = i;  
+  Serial.println("AT+CMGF=1");
+  delay(100);
+  Serial.print("AT+CMGS=\"+91");
+  while(j<10) {
+    Serial.print(number[j++]-48);
+  }  
+  Serial.println("\"\r");
+  delay(100);
+  MGsend(message);
+  Serial.println((char)26);
+  }
+
+void MGsend(char message[]) {
+    int i=0;
+    while(i<msglth) {
+      Serial.print(message[i++]);
+     }
+    Serial.println(); 
+   }
